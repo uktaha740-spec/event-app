@@ -9,7 +9,21 @@ export default function LoginPage() {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
   const navigate = useNavigate()
+
+  async function handleForgotPassword() {
+    if (!form.email.trim()) { setError('Enter your email above first, then click Forgot Password.'); return }
+    setLoading(true)
+    setError(null)
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(form.email, {
+      redirectTo: window.location.origin + '/login',
+    })
+    setLoading(false)
+    if (resetError) { setError(resetError.message); return }
+    setResetSent(true)
+    setSuccess(`Password reset email sent to ${form.email} — check your inbox.`)
+  }
 
   function handleChange(e) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -150,7 +164,14 @@ export default function LoginPage() {
 
         {mode === 'login' && (
           <div style={{ textAlign: 'right', marginTop: '12px' }}>
-            <a href="#" style={{ color: '#4361ee', fontSize: '12px', letterSpacing: '0.06em' }}>FORGOT PASSWORD?</a>
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              disabled={resetSent}
+              style={{ background: 'none', border: 'none', color: resetSent ? '#444' : '#4361ee', fontSize: '12px', letterSpacing: '0.06em', cursor: resetSent ? 'default' : 'pointer', fontFamily: 'inherit', padding: 0 }}
+            >
+              {resetSent ? 'RESET EMAIL SENT' : 'FORGOT PASSWORD?'}
+            </button>
           </div>
         )}
 
