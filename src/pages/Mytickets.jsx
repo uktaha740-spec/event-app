@@ -125,6 +125,7 @@ function TicketCard({ ticket }) {
 export default function MyTickets() {
   const [tickets, setTickets] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -136,6 +137,7 @@ export default function MyTickets() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
+        setIsLoggedIn(true)
         const { data, error } = await supabase
           .from('rsvps')
           .select('id, status, event:events(id, title, event_date, max_capacity)')
@@ -164,9 +166,10 @@ export default function MyTickets() {
         }
       }
     } catch {
-      // fall through to mock data
+      // fall through to mock data only if not logged in
     }
-    setTickets(MOCK_TICKETS)
+    const { data: { session } } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }))
+    if (!session) setTickets(MOCK_TICKETS)
     setLoading(false)
   }
 
@@ -196,8 +199,15 @@ export default function MyTickets() {
           <p role="status" aria-live="polite" style={{ color: '#666' }}>Loading your tickets...</p>
         ) : tickets.length === 0 ? (
           <div style={{ color: '#666', textAlign: 'center', padding: '80px 0' }}>
-            <p style={{ fontSize: '1.1rem', marginBottom: '16px' }}>You have no tickets yet.</p>
-            <button style={navBtn} onClick={() => navigate('/')}>DISCOVER EVENTS</button>
+            <p style={{ fontSize: '1.1rem', marginBottom: '8px' }}>
+              {isLoggedIn ? "You haven't booked any events yet." : 'Sign in to see your tickets.'}
+            </p>
+            <p style={{ fontSize: '0.85rem', marginBottom: '24px', color: '#444' }}>
+              {isLoggedIn ? 'Browse events and RSVP to get your first ticket.' : 'Create an account or log in to access your tickets.'}
+            </p>
+            <button style={navBtn} onClick={() => navigate(isLoggedIn ? '/' : '/login')}>
+              {isLoggedIn ? 'DISCOVER EVENTS' : 'LOG IN'}
+            </button>
           </div>
         ) : (
           <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }} role="list">
