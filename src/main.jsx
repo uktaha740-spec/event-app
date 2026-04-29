@@ -9,6 +9,13 @@ import Dashboard from './pages/Dashboard.jsx'
 import CheckIn from './pages/CheckIn.jsx'
 import Contact from './pages/Contact.jsx'
 
+// Register PWA service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () =>
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  )
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>

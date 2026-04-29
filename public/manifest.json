@@ -1,0 +1,52 @@
+{
+  "name": "EventHub — London Events",
+  "short_name": "EventHub",
+  "description": "Discover, book and manage London events. Get your QR ticket in seconds.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#4361ee",
+  "orientation": "portrait-primary",
+  "lang": "en-GB",
+  "categories": ["entertainment", "lifestyle", "social"],
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "My Tickets",
+      "short_name": "Tickets",
+      "description": "View your booked event tickets and QR codes",
+      "url": "/tickets",
+      "icons": [{ "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Host Dashboard",
+      "short_name": "Dashboard",
+      "description": "Manage your events and track RSVPs",
+      "url": "/dashboard",
+      "icons": [{ "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Check In Scanner",
+      "short_name": "Check In",
+      "description": "Scan guest QR codes at the door",
+      "url": "/checkin",
+      "icons": [{ "src": "/app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
