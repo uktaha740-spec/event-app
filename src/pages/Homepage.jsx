@@ -153,6 +153,7 @@ function EventCard({ event, onAction, onRSVP, rsvpState }) {
   const isPaid = event.price > 0
   const showImg = event.image_url && !imgFailed
   const thisRsvp = rsvpState?.[event.id]
+  const isFull   = event.capacity > 0 && (event.tickets_sold ?? 0) >= event.capacity
 
   return (
     <article
@@ -217,16 +218,18 @@ function EventCard({ event, onAction, onRSVP, rsvpState }) {
           </span>
           <button
             onClick={e => { e.stopPropagation(); onRSVP(event) }}
-            disabled={thisRsvp === 'loading' || thisRsvp === 'done'}
+            disabled={isFull || thisRsvp === 'loading' || thisRsvp === 'done'}
+            aria-label={isFull ? `${event.title} — Event Full` : `Get ticket for ${event.title}`}
             style={{
-              border: thisRsvp === 'done' ? '1px solid #00cc66' : `1px solid ${meta.accent}`,
-              color: thisRsvp === 'done' ? '#00cc66' : meta.accent,
+              border: isFull ? '1px solid #ff4444' : thisRsvp === 'done' ? '1px solid #00cc66' : `1px solid ${meta.accent}`,
+              color: isFull ? '#ff4444' : thisRsvp === 'done' ? '#00cc66' : meta.accent,
               background: 'none', padding: '5px 14px', fontSize: '10px',
-              letterSpacing: '0.1em', fontWeight: 'bold', cursor: thisRsvp === 'done' ? 'default' : 'pointer',
+              letterSpacing: '0.1em', fontWeight: 'bold',
+              cursor: (isFull || thisRsvp === 'done') ? 'default' : 'pointer',
               fontFamily: 'inherit',
             }}
           >
-            {thisRsvp === 'loading' ? 'BOOKING...' : thisRsvp === 'done' ? '✓ BOOKED' : thisRsvp === 'error' ? 'TRY AGAIN' : 'GET TICKET →'}
+            {isFull ? 'EVENT FULL' : thisRsvp === 'loading' ? 'BOOKING...' : thisRsvp === 'done' ? '✓ BOOKED' : thisRsvp === 'error' ? 'TRY AGAIN' : 'GET TICKET →'}
           </button>
         </div>
       </div>
@@ -319,7 +322,26 @@ export default function Homepage() {
     setLoading(true)
     try {
       const { data, error } = await supabase.from('events').select('*').order('event_date', { ascending: true })
-      setEvents(!error && data?.length ? data : MOCK_EVENTS)
+      if (!error && data?.length) {
+        try {
+          const { data: rsvpRows } = await supabase.from('rsvps').select('event_id').neq('status', 'cancelled')
+          if (rsvpRows) {
+            const countMap = {}
+            rsvpRows.forEach(r => { countMap[r.event_id] = (countMap[r.event_id] || 0) + 1 })
+            setEvents(data.map(e => ({
+              ...e,
+              tickets_sold: countMap[e.id] ?? (e.tickets_sold ?? 0),
+              capacity: parseInt(e.max_capacity) || e.capacity || 0,
+            })))
+          } else {
+            setEvents(data)
+          }
+        } catch {
+          setEvents(data)
+        }
+      } else {
+        setEvents(MOCK_EVENTS)
+      }
     } catch {
       setEvents(MOCK_EVENTS)
     }
@@ -344,6 +366,10 @@ export default function Homepage() {
 
   async function handleRSVP(event) {
     if (!isLoggedIn) { navigate('/login'); return }
+    if (event.capacity > 0 && (event.tickets_sold ?? 0) >= event.capacity) {
+      setRsvpState(prev => ({ ...prev, [event.id]: 'full' }))
+      return
+    }
     setRsvpState(prev => ({ ...prev, [event.id]: 'loading' }))
     try {
       const { data: { user } } = await supabase.auth.getUser()

@@ -233,7 +233,7 @@ export default function CheckIn() {
 }
 
 const navBtn = {
-  background: '#007bff', color: '#fff', border: 'none',
+  background: '#4361ee', color: '#fff', border: 'none',
   padding: '10px 20px', fontWeight: 'bold', fontSize: '13px',
   letterSpacing: '0.05em', fontFamily: 'inherit', cursor: 'pointer',
 }

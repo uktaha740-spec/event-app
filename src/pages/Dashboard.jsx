@@ -63,11 +63,24 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [isHost, setIsHost] = useState(false)
+  const [notification, setNotification] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
     fetchHostEvents()
     checkRole()
+  }, [])
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('host-rsvp-alerts')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'rsvps' }, () => {
+        setNotification('New RSVP just received! Refreshing dashboard...')
+        fetchHostEvents()
+        setTimeout(() => setNotification(null), 6000)
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
   }, [])
 
   async function checkRole() {
@@ -254,6 +267,14 @@ export default function Dashboard() {
           </p>
         </div>
 
+        {/* Live RSVP notification banner */}
+        {notification && (
+          <div role="alert" aria-live="assertive" style={{ background: '#001a00', border: '1px solid #00cc66', color: '#00cc66', padding: '14px 20px', marginBottom: '20px', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '12px', letterSpacing: '0.04em', animation: 'slideDown 0.3s ease' }}>
+            <span aria-hidden="true" className="pulse-dot" style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#00cc66', flexShrink: 0, display: 'inline-block' }} />
+            {notification}
+          </div>
+        )}
+
         {/* Save message */}
         {saveMsg && (
           <div role="status" aria-live="polite" style={{ background: '#003300', border: '1px solid #00cc66', color: '#00cc66', padding: '10px 16px', marginBottom: '20px', fontSize: '0.85rem' }}>
@@ -433,7 +454,7 @@ function EventStats({ event, onCheckinNav }) {
 }
 
 const navBtn = {
-  background: '#007bff', color: '#fff', border: 'none',
+  background: '#4361ee', color: '#fff', border: 'none',
   padding: '10px 20px', fontWeight: 'bold', fontSize: '13px',
   letterSpacing: '0.05em', fontFamily: 'inherit', cursor: 'pointer',
 }
@@ -508,7 +529,7 @@ const inputStyle = {
 }
 
 const submitBtn = {
-  background: '#007bff', color: '#fff', border: 'none',
+  background: '#4361ee', color: '#fff', border: 'none',
   padding: '12px 28px', fontWeight: 'bold', fontFamily: 'inherit',
   fontSize: '14px', cursor: 'pointer', letterSpacing: '0.05em',
 }
@@ -520,7 +541,7 @@ const cancelBtn = {
 }
 
 const checkinBtn = {
-  background: '#007bff', color: '#fff', border: 'none',
+  background: '#4361ee', color: '#fff', border: 'none',
   padding: '10px 20px', fontWeight: 'bold', fontSize: '12px',
   letterSpacing: '0.06em', fontFamily: 'inherit', cursor: 'pointer',
 }

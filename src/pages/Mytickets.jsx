@@ -249,7 +249,7 @@ const navStyle = {
 }
 
 const navBtn = {
-  background: '#007bff',
+  background: '#4361ee',
   color: '#fff',
   border: 'none',
   padding: '10px 20px',

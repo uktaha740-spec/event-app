@@ -102,3 +102,42 @@ button {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .how-grid { grid-template-columns: 1fr; }
 }
+
+/* ── ACCESSIBILITY ───────────────────────────────────────────────────────── */
+
+/* Screen-reader-only helper — used in CheckIn and Dashboard */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── ANIMATIONS ──────────────────────────────────────────────────────────── */
+
+/* Live-notification banner slide-in */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Pulsing green dot inside notification banner */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.35; transform: scale(0.75); }
+}
+.pulse-dot { animation: pulse 1.4s ease-in-out infinite; }
+
+/* ── PRINT STYLES (My Tickets page) ─────────────────────────────────────── */
+@media print {
+  header, footer, nav, .no-print { display: none !important; }
+  body { background: #fff !important; color: #000 !important; }
+  article { break-inside: avoid; page-break-inside: avoid; }
+  /* Invert QR code wrapper so the white background prints cleanly */
+  [role="img"] { border: 1px solid #ccc; }
+}
