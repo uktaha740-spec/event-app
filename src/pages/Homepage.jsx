@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../supabase.js/client'
+import { useNavigate } from 'react-router'
+import { supabase } from '../supabaseClient'
 import Footer from '../components/Footer'
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -145,13 +145,14 @@ function formatPrice(event) {
 
 // ── EVENT CARD ───────────────────────────────────────────────────────────────
 
-function EventCard({ event, onAction }) {
+function EventCard({ event, onAction, onRSVP, rsvpState }) {
   const [imgFailed, setImgFailed] = useState(false)
   const badge  = getStatusBadge(event)
   const bg     = CAT_GRADIENT[event.category] || CAT_GRADIENT.default
   const meta   = CAT_META[event.category]     || CAT_META.All
   const isPaid = event.price > 0
   const showImg = event.image_url && !imgFailed
+  const thisRsvp = rsvpState?.[event.id]
 
   return (
     <article
@@ -214,9 +215,19 @@ function EventCard({ event, onAction }) {
           <span style={{ fontWeight: 'bold', fontSize: '0.95rem', color: isPaid ? '#fff' : '#00cc66' }}>
             {formatPrice(event)}
           </span>
-          <span style={{ border: `1px solid ${meta.accent}`, color: meta.accent, padding: '5px 14px', fontSize: '10px', letterSpacing: '0.1em', fontWeight: 'bold' }}>
-            VIEW →
-          </span>
+          <button
+            onClick={e => { e.stopPropagation(); onRSVP(event) }}
+            disabled={thisRsvp === 'loading' || thisRsvp === 'done'}
+            style={{
+              border: thisRsvp === 'done' ? '1px solid #00cc66' : `1px solid ${meta.accent}`,
+              color: thisRsvp === 'done' ? '#00cc66' : meta.accent,
+              background: 'none', padding: '5px 14px', fontSize: '10px',
+              letterSpacing: '0.1em', fontWeight: 'bold', cursor: thisRsvp === 'done' ? 'default' : 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            {thisRsvp === 'loading' ? 'BOOKING...' : thisRsvp === 'done' ? '✓ BOOKED' : thisRsvp === 'error' ? 'TRY AGAIN' : 'GET TICKET →'}
+          </button>
         </div>
       </div>
     </article>
@@ -287,6 +298,7 @@ export default function Homepage() {
   const [search,         setSearch]         = useState('')
   const [loading,        setLoading]        = useState(true)
   const [isLoggedIn,     setIsLoggedIn]     = useState(false)
+  const [rsvpState,      setRsvpState]      = useState({})
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -306,7 +318,7 @@ export default function Homepage() {
   async function fetchEvents() {
     setLoading(true)
     try {
-      const { data, error } = await supabase.from('events').select('*').order('created_at', { ascending: false })
+      const { data, error } = await supabase.from('events').select('*').order('event_date', { ascending: true })
       setEvents(!error && data?.length ? data : MOCK_EVENTS)
     } catch {
       setEvents(MOCK_EVENTS)
@@ -330,6 +342,95 @@ export default function Homepage() {
     navigate(isLoggedIn ? '/tickets' : '/login')
   }
 
+  async function handleRSVP(event) {
+    if (!isLoggedIn) { navigate('/login'); return }
+    setRsvpState(prev => ({ ...prev, [event.id]: 'loading' }))
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { navigate('/login'); return }
+
+      const key = `tickets_${user.id}`
+      const existing = JSON.parse(localStorage.getItem(key) || '[]')
+
+      // Already booked
+      if (existing.find(t => t.event_id === event.id)) {
+        setRsvpState(prev => ({ ...prev, [event.id]: 'done' }))
+        window.location.href = '/tickets'
+        return
+      }
+
+      // Generate ticket reference
+      const ticketCode = 'EVT-' + Math.random().toString(36).substr(2, 6).toUpperCase()
+
+      const newTicket = {
+        id: ticketCode,
+        ticket_code: ticketCode,
+        event_id: event.id,
+        status: 'Attending',
+        event: {
+          title: event.title,
+          date: event.date,
+          time: event.time || '',
+          venue: event.venue || 'London',
+          price: event.price || 0,
+          image_url: event.image_url || null,
+        },
+      }
+
+      localStorage.setItem(key, JSON.stringify([newTicket, ...existing]))
+      setRsvpState(prev => ({ ...prev, [event.id]: 'done' }))
+
+      // Send ticket confirmation email with QR code via Resend
+      try {
+        const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketCode}`
+        const emailRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer re_YDWbv2az_HSqKMFyHygrMocxhZ1R3h7Ec',
+          },
+          body: JSON.stringify({
+            from: 'onboarding@resend.dev',
+            to: '16jamesm@gmail.com',
+            subject: `Ticket for ${event.title} — Booked by ${user.email}`,
+            html: `
+              <div style="background:#000;color:#fff;font-family:'Courier New',monospace;padding:40px;max-width:600px;margin:0 auto;">
+                <h1 style="color:#4361ee;letter-spacing:0.1em;font-size:1.2rem;margin-bottom:4px;">EVENT●HUB</h1>
+                <p style="color:#555;font-size:0.8rem;margin-bottom:32px;">Your ticket confirmation</p>
+
+                <h2 style="font-size:1.4rem;font-weight:bold;margin-bottom:8px;">${event.title}</h2>
+                <p style="color:#aaa;font-size:0.9rem;margin-bottom:4px;">📅 ${event.date}${event.time ? ' at ' + event.time : ''}</p>
+                <p style="color:#aaa;font-size:0.9rem;margin-bottom:24px;">📍 ${event.venue || 'London'}</p>
+
+                <div style="background:#111;border:1px solid #222;padding:20px;margin-bottom:24px;text-align:center;">
+                  <p style="color:#555;font-size:0.75rem;letter-spacing:0.1em;margin-bottom:12px;">YOUR QR CODE</p>
+                  <img src="${qrImageUrl}" alt="QR Code" width="200" height="200" style="display:block;margin:0 auto 16px;" />
+                  <p style="color:#4361ee;font-size:1rem;font-weight:bold;letter-spacing:0.12em;">${ticketCode}</p>
+                  <p style="color:#555;font-size:0.75rem;margin-top:8px;">Show this QR code at the door</p>
+                </div>
+
+                <p style="color:#333;font-size:0.75rem;text-align:center;">
+                  View your ticket anytime at <a href="https://vent-app-m4.vercel.app/tickets" style="color:#4361ee;">EventHub My Tickets</a>
+                </p>
+              </div>
+            `,
+          }),
+        })
+        const result = await emailRes.json()
+        console.log('Resend response:', emailRes.status, result)
+      } catch (emailErr) {
+        console.error('Email error:', emailErr)
+      }
+
+      // Redirect to tickets page
+      window.location.href = '/tickets'
+
+    } catch (err) {
+      console.error('RSVP failed:', err)
+      setRsvpState(prev => ({ ...prev, [event.id]: 'error' }))
+    }
+  }
+
   function handleHostAction() {
     navigate(isLoggedIn ? '/dashboard' : '/login')
   }
@@ -344,15 +445,16 @@ export default function Homepage() {
           <a href="/" aria-label="EventHub home" style={{ fontWeight: 'bold', fontSize: '1.15rem', letterSpacing: '0.18em' }}>
             EVENT<span style={{ color: '#4361ee' }}>●</span>HUB
           </a>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button style={outlineBtn} onClick={() => navigate('/contact')}>HELP</button>
             {isLoggedIn ? (
               <>
-                <button style={solidBtn} onClick={() => navigate('/dashboard')}>DASHBOARD</button>
-                <button style={solidBtn} onClick={() => navigate('/tickets')}>MY TICKETS</button>
+                <button style={outlineBtn} onClick={() => navigate('/dashboard')}>DASHBOARD</button>
+                <button style={outlineBtn} onClick={() => navigate('/tickets')}>MY TICKETS</button>
               </>
             ) : (
               <>
-                <a href="/login"><button style={outlineBtn}>LOG IN</button></a>
+                <button style={outlineBtn} onClick={() => navigate('/login')}>LOG IN</button>
                 <button style={solidBtn} onClick={() => navigate('/login')}>CREATE ACCOUNT</button>
               </>
             )}
@@ -609,7 +711,7 @@ export default function Homepage() {
             <div className="events-grid" role="list">
               {filtered.map(event => (
                 <div key={event.id} role="listitem">
-                  <EventCard event={event} onAction={handleTicketAction} />
+                  <EventCard event={event} onAction={handleTicketAction} onRSVP={handleRSVP} rsvpState={rsvpState} />
                 </div>
               ))}
             </div>

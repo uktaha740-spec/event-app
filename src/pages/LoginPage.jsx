@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../supabase.js/client'
+import { useNavigate } from 'react-router'
+import { supabase } from '../supabaseClient'
 
 export default function LoginPage() {
   const [mode, setMode] = useState('signup')
@@ -55,7 +55,7 @@ export default function LoginPage() {
 
       // If email confirmation is required, show message instead of redirecting
       if (data.session) {
-        navigate(role === 'host' ? '/dashboard' : '/tickets')
+        navigate('/')
       } else {
         setSuccess('Account created! Check your email to confirm, then log in.')
         setMode('login')
@@ -78,8 +78,8 @@ export default function LoginPage() {
         .eq('id', data.user.id)
         .single()
 
-      const userRole = profile?.role ?? data.user.user_metadata?.role ?? 'participant'
-      navigate(userRole === 'host' ? '/dashboard' : '/tickets')
+      // Both hosts and guests go to homepage — they can access all pages
+      navigate('/')
     }
 
     setLoading(false)

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../supabase.js/client'
+import { useNavigate } from 'react-router'
+import { supabase } from '../supabaseClient'
 import Footer from '../components/Footer'
 
 const STATUS_LABELS = {
@@ -62,11 +62,27 @@ export default function Dashboard() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
+  const [isHost, setIsHost] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
     fetchHostEvents()
+    checkRole()
   }, [])
+
+  async function checkRole() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single()
+      const role = profile?.role ?? session.user.user_metadata?.role ?? 'participant'
+      setIsHost(role === 'host')
+    } catch { }
+  }
 
   async function fetchHostEvents() {
     setLoading(true)
@@ -191,10 +207,10 @@ export default function Dashboard() {
       >
         {[
           { label: 'Home', action: () => navigate('/') },
-          { label: 'Create Event', action: () => { setShowCreateForm(true); setMenuOpen(false) } },
-          { label: 'Check In Guests', action: () => navigate('/checkin') },
-          { label: 'Notifications', action: () => {} },
-          { label: 'Help', action: () => {} },
+          ...(isHost ? [{ label: 'Create Event', action: () => { setShowCreateForm(true); setMenuOpen(false) } }] : []),
+          { label: 'My Tickets', action: () => navigate('/tickets') },
+          ...(isHost ? [{ label: 'Check In Guests', action: () => navigate('/checkin') }] : []),
+          { label: 'Help', action: () => navigate('/contact') },
           { label: 'Log Out', action: async () => { await supabase.auth.signOut(); navigate('/login') } },
         ].map(item => (
           <button
@@ -220,8 +236,9 @@ export default function Dashboard() {
             ☰
           </button>
           <nav aria-label="Top navigation" style={{ display: 'flex', gap: '10px' }}>
-            <button style={navBtn} aria-label="Help centre">HELP CENTER</button>
-            <button style={navBtn} onClick={() => navigate('/')} aria-label="Go home">HOME</button>
+            <button style={navBtn} onClick={() => navigate('/contact')}>HELP</button>
+            <button style={navBtn} onClick={() => navigate('/tickets')}>MY TICKETS</button>
+            <button style={navBtn} onClick={() => navigate('/')}>HOME</button>
           </nav>
         </div>
         <hr style={{ borderColor: '#222' }} />
@@ -244,8 +261,19 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Create New Event */}
-        <section aria-labelledby="create-heading" style={{ marginBottom: '32px' }}>
+        {/* Create New Event — hosts only */}
+        {!isHost && (
+          <div style={{ background: '#0a0a0a', border: '1px solid #222', padding: '20px', marginBottom: '32px', textAlign: 'center' }}>
+            <p style={{ color: '#555', fontSize: '0.85rem', letterSpacing: '0.06em' }}>
+              ⚠ Only hosts can create events.{' '}
+              <span style={{ color: '#4361ee', cursor: 'pointer' }} onClick={() => navigate('/login')}>
+                Sign up as a host
+              </span>{' '}
+              to unlock this feature.
+            </p>
+          </div>
+        )}
+        <section aria-labelledby="create-heading" style={{ marginBottom: '32px', display: isHost ? 'block' : 'none' }}>
           <button
             id="create-heading"
             onClick={() => setShowCreateForm(v => !v)}

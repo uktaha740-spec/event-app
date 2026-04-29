@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { QRCodeSVG } from 'qrcode.react'
-import { supabase } from '../supabase.js/client'
+import { supabase } from '../supabaseClient'
 import Footer from '../components/Footer'
 
 const MOCK_TICKETS = [
@@ -36,7 +36,7 @@ const MOCK_TICKETS = [
 function TicketCard({ ticket }) {
   const { event, ticket_code, status } = ticket
   const isPaid = event.price > 0
-  const isAttended = status === 'attended'
+  const isAttended = status === 'Attended'
 
   return (
     <article style={cardStyle} aria-label={`Ticket for ${event.title}`}>
@@ -135,41 +135,58 @@ export default function MyTickets() {
   async function fetchTickets() {
     setLoading(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
         setIsLoggedIn(true)
+
+        // Try real Supabase RSVPs first (Member 2's query)
         const { data, error } = await supabase
           .from('rsvps')
-          .select('id, status, event:events(id, title, event_date, max_capacity)')
-          .eq('guest_id', session.user.id)
-          .neq('status', 'declined')
-          .order('created_at', { ascending: false })
+          .select(`
+            id,
+            status,
+            event:events (
+              title,
+              event_date,
+              max_capacity
+            )
+          `)
+          .eq('guest_id', user.id)
+
         if (!error && data && data.length > 0) {
-          const normalized = data.map(r => ({
-            id: r.id,
-            ticket_code: r.id,          // RSVP UUID is the QR value
-            status: r.status,
+          const formatted = data.map(rsvp => ({
+            id: rsvp.id,
+            ticket_code: rsvp.id,
+            status: rsvp.status,
             event: {
-              title: r.event?.title ?? 'Unknown Event',
-              date: r.event?.event_date
-                ? new Date(r.event.event_date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+              title: rsvp.event?.title ?? 'Unknown Event',
+              date: rsvp.event?.event_date
+                ? new Date(rsvp.event.event_date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
                 : 'TBD',
-              time: r.event?.time ?? '',
-              venue: r.event?.venue ?? 'TBD',
-              price: r.event?.price ?? 0,
-              image_url: r.event?.image_url ?? null,
+              time: 'TBD',
+              venue: 'Main Venue',
+              price: 0,
+              image_url: null,
             },
           }))
-          setTickets(normalized)
+          setTickets(formatted)
           setLoading(false)
           return
         }
+
+        // Fallback: localStorage tickets (from GET TICKET button)
+        const key = `tickets_${user.id}`
+        const stored = JSON.parse(localStorage.getItem(key) || '[]')
+        setTickets(stored)
+        setLoading(false)
+        return
       }
-    } catch {
-      // fall through to mock data only if not logged in
+    } catch (err) {
+      console.error(err)
     }
-    const { data: { session } } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }))
-    if (!session) setTickets(MOCK_TICKETS)
+    // Not logged in — show mock demo tickets
+    setTickets(MOCK_TICKETS)
     setLoading(false)
   }
 
@@ -180,12 +197,9 @@ export default function MyTickets() {
       {/* Navbar */}
       <header>
         <nav aria-label="Main navigation" style={navStyle}>
-          <button style={navBtn} onClick={() => navigate('/')} aria-label="Discover events">
-            DISCOVER EVENTS
-          </button>
-          <button style={navBtn} onClick={() => navigate('/')} aria-label="Go to home page">
-            HOME
-          </button>
+          <button style={navBtn} onClick={() => navigate('/')}>HOME</button>
+          <button style={navBtn} onClick={() => navigate('/dashboard')}>DASHBOARD</button>
+          <button style={navBtn} onClick={() => navigate('/contact')}>HELP</button>
         </nav>
         <hr style={{ borderColor: '#222' }} />
       </header>
@@ -199,14 +213,16 @@ export default function MyTickets() {
           <p role="status" aria-live="polite" style={{ color: '#666' }}>Loading your tickets...</p>
         ) : tickets.length === 0 ? (
           <div style={{ color: '#666', textAlign: 'center', padding: '80px 0' }}>
-            <p style={{ fontSize: '1.1rem', marginBottom: '8px' }}>
-              {isLoggedIn ? "You haven't booked any events yet." : 'Sign in to see your tickets.'}
+            <p style={{ fontSize: '3rem', marginBottom: '16px' }}>🎫</p>
+            <p style={{ fontSize: '1.1rem', marginBottom: '8px', color: '#fff' }}>
+              {isLoggedIn ? "No tickets yet." : 'Sign in to see your tickets.'}
             </p>
-            <p style={{ fontSize: '0.85rem', marginBottom: '24px', color: '#444' }}>
-              {isLoggedIn ? 'Browse events and RSVP to get your first ticket.' : 'Create an account or log in to access your tickets.'}
+            <p style={{ fontSize: '0.85rem', marginBottom: '24px', color: '#555' }}>
+              {isLoggedIn ? 'Click "GET TICKET" on any event on the homepage.' : 'Create an account or log in to book events.'}
             </p>
-            <button style={navBtn} onClick={() => navigate(isLoggedIn ? '/' : '/login')}>
-              {isLoggedIn ? 'DISCOVER EVENTS' : 'LOG IN'}
+            <button style={{ ...navBtn, background: '#4361ee', color: '#fff', border: 'none' }}
+              onClick={() => window.location.href = isLoggedIn ? '/' : '/login'}>
+              {isLoggedIn ? 'BROWSE EVENTS →' : 'LOG IN'}
             </button>
           </div>
         ) : (

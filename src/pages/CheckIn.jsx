@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { Html5QrcodeScanner } from 'html5-qrcode'
-import { supabase } from '../supabase.js/client'
+import { supabase } from '../supabaseClient'
 
 const MOCK_TICKETS = {
   'EVT-10324': { name: 'Alex Johnson', event: 'Your Best Recovery Yet', status: 'registered' },
   'EVT-76492': { name: 'Sam Williams', event: 'Gymshark Battle Stations', status: 'registered' },
-  'EVT-00001': { name: 'Jamie Lee', event: 'Gymshark Battle Stations', status: 'attended' },
+  'EVT-00001': { name: 'Jamie Lee', event: 'Gymshark Battle Stations', status: 'Attended' },
 }
 
 export default function CheckIn() {
@@ -62,7 +62,7 @@ export default function CheckIn() {
         id: data.id,
       })
 
-      if (data.status === 'attended') {
+      if (data.status === 'Attended') {
         setStatus('already')
       } else {
         setStatus('found')
@@ -72,7 +72,7 @@ export default function CheckIn() {
       const mock = MOCK_TICKETS[code]
       if (mock) {
         setTicketInfo({ ...mock, id: null })
-        setStatus(mock.status === 'attended' ? 'already' : 'found')
+        setStatus(mock.status === 'Attended' ? 'already' : 'found')
       } else {
         setTicketInfo(null)
         setStatus('notfound')
@@ -84,7 +84,7 @@ export default function CheckIn() {
     setConfirming(true)
     try {
       if (ticketInfo?.id) {
-        await supabase.from('rsvps').update({ status: 'attended' }).eq('id', ticketInfo.id)
+        await supabase.from('rsvps').update({ status: 'Attended' }).eq('id', ticketInfo.id)
       }
       setStatus('success')
       setRecentCheckIns(prev => [
