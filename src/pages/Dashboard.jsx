@@ -72,15 +72,20 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    const channel = supabase
-      .channel('host-rsvp-alerts')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'rsvps' }, () => {
-        setNotification('New RSVP just received! Refreshing dashboard...')
-        fetchHostEvents()
-        setTimeout(() => setNotification(null), 6000)
-      })
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
+    let channel
+    try {
+      channel = supabase
+        .channel('host-rsvp-alerts')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'rsvps' }, () => {
+          setNotification('New RSVP just received! Refreshing dashboard...')
+          fetchHostEvents()
+          setTimeout(() => setNotification(null), 6000)
+        })
+        .subscribe()
+    } catch {
+      // Realtime unavailable — silently degrade, manual refresh still works
+    }
+    return () => { if (channel) supabase.removeChannel(channel).catch(() => {}) }
   }, [])
 
   async function checkRole() {

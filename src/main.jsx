@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 import Homepage from './pages/Homepage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import MyTickets from './pages/Mytickets.jsx'
@@ -18,15 +19,17 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Homepage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/tickets" element={<MyTickets />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/checkin" element={<CheckIn />} />
-        <Route path="/contact" element={<Contact />} />
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/tickets" element={<MyTickets />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/checkin" element={<CheckIn />} />
+          <Route path="/contact" element={<Contact />} />
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>
 )
