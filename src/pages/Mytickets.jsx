@@ -53,7 +53,7 @@ function TicketCard({ ticket }) {
           aria-hidden="true"
         >
           <span style={{ fontWeight: 'bold', fontSize: '1rem', opacity: 0.5, textAlign: 'center', padding: '12px' }}>
-            {event.title.toUpperCase()}
+            {(event.title || '').toUpperCase()}
           </span>
         </div>
       )}

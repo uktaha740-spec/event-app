@@ -186,7 +186,7 @@ function EventCard({ event, onAction, onRSVP, rsvpState }) {
 
         {/* Category pill — top left */}
         <span style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(0,0,0,0.78)', color: meta.accent, border: `1px solid ${meta.accent}44`, padding: '3px 10px', fontSize: '9px', letterSpacing: '0.14em', backdropFilter: 'blur(6px)' }}>
-          {event.category.toUpperCase()}
+          {(event.category || 'Event').toUpperCase()}
         </span>
 
         {/* Status badge — top right */}
@@ -648,12 +648,12 @@ export default function Homepage() {
                     : <span style={{ background: 'rgba(67,97,238,0.2)', color: '#7ca4ff', border: '1px solid rgba(67,97,238,0.4)', padding: '4px 12px', fontSize: '10px', letterSpacing: '0.12em' }}>FEATURED</span>
                   }
                   <span style={{ background: 'rgba(255,255,255,0.08)', color: '#888', padding: '4px 12px', fontSize: '10px', letterSpacing: '0.1em' }}>
-                    {featured.category.toUpperCase()}
+                    {(featured.category || 'Event').toUpperCase()}
                   </span>
                 </div>
 
                 <h2 id="featured-heading" style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.8rem)', fontWeight: 'bold', letterSpacing: '0.03em', marginBottom: '12px', maxWidth: '640px', lineHeight: 1.1 }}>
-                  {featured.title.toUpperCase()}
+                  {(featured.title || '').toUpperCase()}
                 </h2>
 
                 {featured.description && (
