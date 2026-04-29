@@ -25,6 +25,16 @@ const CAT_GRADIENT = {
   default:                    'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
 }
 
+// Fallback photos for real DB events that don't have image_url set yet
+const DEFAULT_IMAGES = {
+  Music:                      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=800&q=80',
+  Business:                   'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=800&q=80',
+  Hobbies:                    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
+  'Food & Drink':             'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=800&q=80',
+  'Performing & Visual Arts': 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=800&q=80',
+  default:                    'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
+}
+
 // All dates set to June–July 2026 so the app always shows future events
 const MOCK_EVENTS = [
   {
@@ -147,11 +157,12 @@ function formatPrice(event) {
 
 function EventCard({ event, onAction, onRSVP, rsvpState }) {
   const [imgFailed, setImgFailed] = useState(false)
-  const badge  = getStatusBadge(event)
-  const bg     = CAT_GRADIENT[event.category] || CAT_GRADIENT.default
-  const meta   = CAT_META[event.category]     || CAT_META.All
-  const isPaid = event.price > 0
-  const showImg = event.image_url && !imgFailed
+  const badge   = getStatusBadge(event)
+  const bg      = CAT_GRADIENT[event.category] || CAT_GRADIENT.default
+  const meta    = CAT_META[event.category]     || CAT_META.All
+  const isPaid  = event.price > 0
+  const imgSrc  = event.image_url || DEFAULT_IMAGES[event.category] || DEFAULT_IMAGES.default
+  const showImg = imgSrc && !imgFailed
   const thisRsvp = rsvpState?.[event.id]
   const isFull   = event.capacity > 0 && (event.tickets_sold ?? 0) >= event.capacity
 
@@ -166,7 +177,7 @@ function EventCard({ event, onAction, onRSVP, rsvpState }) {
       <div style={{ position: 'relative', height: '210px', overflow: 'hidden' }}>
         {showImg ? (
           <img
-            src={event.image_url}
+            src={imgSrc}
             alt={event.title}
             onError={() => setImgFailed(true)}
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
@@ -620,17 +631,13 @@ export default function Homepage() {
               onKeyDown={e => e.key === 'Enter' && handleTicketAction()}
               style={{ position: 'relative', overflow: 'hidden', border: '1px solid #1e1e1e', minHeight: '320px', display: 'flex', alignItems: 'flex-end', cursor: 'pointer' }}
             >
-              {/* Background: real image or gradient */}
-              {featured.image_url ? (
-                <img
-                  src={featured.image_url}
-                  alt={featured.title}
-                  onError={e => { e.target.style.display = 'none' }}
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
-                />
-              ) : (
-                <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: CAT_GRADIENT[featured.category] || CAT_GRADIENT.default }} />
-              )}
+              {/* Background: real image, category fallback, or gradient */}
+              <img
+                src={featured.image_url || DEFAULT_IMAGES[featured.category] || DEFAULT_IMAGES.default}
+                alt={featured.title}
+                onError={e => { e.target.style.display = 'none' }}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+              />
 
               {/* Big faint category icon */}
               <div aria-hidden="true" style={{ position: 'absolute', top: '-10px', right: '40px', fontSize: '14rem', opacity: 0.05, lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>
