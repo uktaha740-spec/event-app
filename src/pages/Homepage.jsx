@@ -42,63 +42,72 @@ const MOCK_EVENTS = [
     venue: 'Exhibition White City', price: 0, category: 'Hobbies', status: 'live',
     capacity: 100, tickets_sold: 72,
     description: 'Go head-to-head across 8 hybrid race stations in the ultimate fitness challenge.',
-    image_url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80',
+    // Dramatic CrossFit/gym competition — matches Gymshark's high-intensity brand
+    image_url: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 2, title: 'Your Best Recovery Yet', date: 'Sat 14 Jun 2026', time: '09:00',
     venue: 'Kachette', price: 15, category: 'Food & Drink', status: 'upcoming',
     capacity: 50, tickets_sold: 20,
     description: 'A wellness event focused on recovery techniques, nutrition, and healthy living.',
-    image_url: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?auto=format&fit=crop&w=800&q=80',
+    // Calm yoga/wellness class — soft light, recovery and mindfulness vibe
+    image_url: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 3, title: 'Big Zero Show 2026', date: 'Thu 19 Jun 2026', time: '09:30',
     venue: 'Chicago Booth School of Business', price: 0, category: 'Business', status: 'almost_full',
     capacity: 200, tickets_sold: 190,
     description: 'The premier business showcase connecting innovators and investors from across Europe.',
-    image_url: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=800&q=80',
+    // Professional business networking crowd — exactly like the prototype photo
+    image_url: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 4, title: 'London Music Festival 2026', date: 'Fri 27 Jun 2026', time: '18:00',
     venue: 'O2 Arena, London', price: 45, category: 'Music', status: 'sales_end_soon',
     capacity: 5000, tickets_sold: 4800,
     description: "London's biggest music festival with 50+ artists across 6 outdoor stages.",
-    image_url: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=800&q=80',
+    // Massive festival crowd with stage lights — epic outdoor concert scale
+    image_url: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 5, title: 'Tech Startup Summit 2026', date: 'Mon 1 Jul 2026', time: '10:00',
     venue: 'ExCeL London', price: 99, category: 'Business', status: 'upcoming',
     capacity: 300, tickets_sold: 150,
     description: 'Connect with 300+ founders, investors, and tech leaders shaping tomorrow.',
-    image_url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80',
+    // Conference hall with keynote speaker and large audience
+    image_url: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 6, title: 'Street Food & Craft Beer Festival', date: 'Sat 5 Jul 2026', time: '12:00',
     venue: 'Southbank Centre', price: 10, category: 'Food & Drink', status: 'upcoming',
     capacity: 400, tickets_sold: 100,
     description: '40 vendors, 100+ craft beers, and the best street food London has to offer.',
-    image_url: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=800&q=80',
+    // Vibrant outdoor food market stalls with warm atmosphere
+    image_url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 7, title: 'West End Showcase 2026', date: 'Wed 9 Jul 2026', time: '19:30',
     venue: 'Royal Albert Hall', price: 35, category: 'Performing & Visual Arts', status: 'upcoming',
     capacity: 800, tickets_sold: 500,
     description: 'An exclusive evening of West End performances at the iconic Royal Albert Hall.',
-    image_url: 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=800&q=80',
+    // Dramatic theatre stage with spotlight — West End performance feel
+    image_url: 'https://images.unsplash.com/photo-1514306191717-452ec28c7814?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 8, title: 'Guitar Masterclass — Ed Sheeran', date: 'Sun 19 Jul 2026', time: '14:00',
     venue: 'Brixton Academy', price: 25, category: 'Music', status: 'almost_full',
     capacity: 300, tickets_sold: 285,
     description: "Learn songwriting and guitar techniques from one of the world's greatest artists.",
-    image_url: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?auto=format&fit=crop&w=800&q=80',
+    // Intimate close-up of hands on guitar strings — personal masterclass feel
+    image_url: 'https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?auto=format&fit=crop&w=800&q=80',
   },
   {
     id: 9, title: 'London Hobby & Craft Expo', date: 'Sat 25 Jul 2026', time: '10:00',
     venue: 'Alexandra Palace', price: 8, category: 'Hobbies', status: 'upcoming',
     capacity: 600, tickets_sold: 200,
     description: 'Explore hundreds of hobby stalls, hands-on workshops, and live demonstrations.',
-    image_url: 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?auto=format&fit=crop&w=800&q=80',
+    // Colourful craft fair stalls with handmade goods on display
+    image_url: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80',
   },
 ]
 
