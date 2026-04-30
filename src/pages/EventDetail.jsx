@@ -150,7 +150,7 @@ export default function EventDetail() {
     return (
       <div style={{ ...centreWrap, gap: '20px' }}>
         <p style={{ fontSize: '4rem', opacity: 0.15 }}>◈</p>
-        <p style={{ letterSpacing: '0.12em', color: '#555' }}>EVENT NOT FOUND</p>
+        <p style={{ letterSpacing: '0.12em', color: '#aaa' }}>EVENT NOT FOUND</p>
         <button onClick={() => navigate('/')} style={solidBtn}>← BACK TO EVENTS</button>
       </div>
     )
@@ -229,7 +229,7 @@ export default function EventDetail() {
               {/* Capacity bar */}
               {event.capacity > 0 && (
                 <div style={{ marginBottom: '36px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#444', marginBottom: '8px', letterSpacing: '0.08em' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#999', marginBottom: '8px', letterSpacing: '0.08em' }}>
                     <span>AVAILABILITY</span>
                     <span style={{ color: fillPct >= 90 ? '#ff4444' : '#555' }}>
                       {event.tickets_sold ?? 0} / {event.capacity} BOOKED
@@ -239,7 +239,7 @@ export default function EventDetail() {
                     <div style={{ height: '100%', width: `${fillPct}%`, background: fillPct >= 90 ? '#ff4444' : '#4361ee', transition: 'width 0.5s ease' }} />
                   </div>
                   {!isFull && (
-                    <p style={{ color: '#555', fontSize: '11px', marginTop: '6px' }}>
+                    <p style={{ color: '#aaa', fontSize: '11px', marginTop: '6px' }}>
                       {event.capacity - (event.tickets_sold ?? 0)} spots remaining
                     </p>
                   )}
@@ -270,7 +270,7 @@ export default function EventDetail() {
                 <p style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '4px', color: isPaid ? '#fff' : '#00cc66' }}>
                   {isPaid ? `£${event.price}` : 'Free'}
                 </p>
-                <p style={{ color: '#444', fontSize: '11px', marginBottom: '28px', letterSpacing: '0.04em' }}>
+                <p style={{ color: '#999', fontSize: '11px', marginBottom: '28px', letterSpacing: '0.04em' }}>
                   {isFull ? 'No tickets remaining' : `${event.capacity - (event.tickets_sold ?? 0)} of ${event.capacity} spots left`}
                 </p>
 
@@ -306,9 +306,9 @@ export default function EventDetail() {
                 )}
 
                 <div style={{ borderTop: '1px solid #111', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <p style={{ color: '#444', fontSize: '12px' }}>📅 {event.date}</p>
-                  {event.time && <p style={{ color: '#444', fontSize: '12px' }}>🕐 Starts at {event.time}</p>}
-                  <p style={{ color: '#444', fontSize: '12px' }}>📍 {event.venue || 'TBD'}</p>
+                  <p style={{ color: '#999', fontSize: '12px' }}>📅 {event.date}</p>
+                  {event.time && <p style={{ color: '#999', fontSize: '12px' }}>🕐 Starts at {event.time}</p>}
+                  <p style={{ color: '#999', fontSize: '12px' }}>📍 {event.venue || 'TBD'}</p>
                 </div>
               </div>
             </div>

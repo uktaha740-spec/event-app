@@ -131,7 +131,7 @@ export default function LoginPage() {
         <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 0, fontFamily: 'inherit', fontWeight: 'bold', fontSize: '1.3rem', letterSpacing: '0.14em' }}>
           EVENT<span style={{ color: '#4361ee' }}>●</span>HUB
         </button>
-        <p style={{ color: '#444', fontSize: '0.78rem', marginTop: '8px', letterSpacing: '0.06em' }}>
+        <p style={{ color: '#999', fontSize: '0.78rem', marginTop: '8px', letterSpacing: '0.06em' }}>
           {subtitle}
         </p>
       </div>
@@ -235,7 +235,7 @@ export default function LoginPage() {
             {loading ? 'PLEASE WAIT...' : mode === 'signup' ? 'CREATE ACCOUNT' : 'SIGN IN →'}
           </button>
 
-          <p style={{ marginTop: '24px', fontSize: '12px', color: '#444', textAlign: 'center', letterSpacing: '0.04em' }}>
+          <p style={{ marginTop: '24px', fontSize: '12px', color: '#999', textAlign: 'center', letterSpacing: '0.04em' }}>
             {mode === 'signup' ? 'ALREADY HAVE AN ACCOUNT? ' : 'NEW TO EVENTHUB? '}
             <button type="button" onClick={() => { setMode(mode === 'signup' ? 'login' : 'signup'); setError(null); setSuccess(null) }}
               style={{ background: 'none', border: 'none', color: '#4361ee', cursor: 'pointer', fontFamily: 'inherit', fontSize: '12px', fontWeight: 'bold', letterSpacing: '0.04em', padding: 0 }}>
@@ -258,7 +258,7 @@ export default function LoginPage() {
 function Field({ label, sublabel, name, type = 'text', value, onChange, placeholder, autoComplete }) {
   return (
     <div>
-      <label style={{ display: 'block', fontSize: '11px', color: '#555', letterSpacing: '0.12em', marginBottom: '8px', fontWeight: 'bold' }}>
+      <label style={{ display: 'block', fontSize: '11px', color: '#aaa', letterSpacing: '0.12em', marginBottom: '8px', fontWeight: 'bold' }}>
         {label}{sublabel && <span style={{ color: '#2a2a2a', marginLeft: '6px' }}>({sublabel})</span>}
       </label>
       <input

@@ -348,7 +348,7 @@ export default function Dashboard() {
         {/* Create New Event — hosts only */}
         {!isHost && (
           <div style={{ background: '#0a0a0a', border: '1px solid #222', padding: '20px', marginBottom: '32px', textAlign: 'center' }}>
-            <p style={{ color: '#555', fontSize: '0.85rem', letterSpacing: '0.06em' }}>
+            <p style={{ color: '#aaa', fontSize: '0.85rem', letterSpacing: '0.06em' }}>
               ⚠ Only hosts can create events.{' '}
               <span style={{ color: '#4361ee', cursor: 'pointer' }} onClick={() => navigate('/login')}>
                 Sign up as a host
@@ -434,9 +434,9 @@ export default function Dashboard() {
           </button>
 
           {loading ? (
-            <p role="status" aria-live="polite" style={{ color: '#666', padding: '20px 0 0 16px' }}>Loading events...</p>
+            <p role="status" aria-live="polite" style={{ color: '#bbb', padding: '20px 0 0 16px' }}>Loading events...</p>
           ) : events.length === 0 ? (
-            <p style={{ color: '#666', padding: '16px 0 0 16px' }}>No events yet. Create your first event above.</p>
+            <p style={{ color: '#bbb', padding: '16px 0 0 16px' }}>No events yet. Create your first event above.</p>
           ) : (
             <ul style={{ listStyle: 'none', marginTop: '16px' }}>
               {events.map(event => (
@@ -447,7 +447,7 @@ export default function Dashboard() {
                     style={eventRowBtn}
                   >
                     -{event.title}
-                    <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#666' }}>
+                    <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#bbb' }}>
                       {expandedId === event.id ? '▲' : '▼'}
                     </span>
                   </button>

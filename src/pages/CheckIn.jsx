@@ -131,7 +131,7 @@ export default function CheckIn() {
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', letterSpacing: '0.08em', marginBottom: '8px' }}>
           CHECK IN GUESTS
         </h1>
-        <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '36px', letterSpacing: '0.04em' }}>
+        <p style={{ color: '#bbb', fontSize: '0.85rem', marginBottom: '36px', letterSpacing: '0.04em' }}>
           SCAN A GUEST'S QR CODE TO VERIFY AND CHECK THEM IN.
         </p>
 
@@ -148,7 +148,7 @@ export default function CheckIn() {
             {scanning ? (
               <div>
                 <div id="qr-reader" style={{ border: '2px solid #333', borderRadius: '4px', overflow: 'hidden' }} />
-                <p style={{ color: '#666', fontSize: '12px', marginTop: '12px', textAlign: 'center' }}>
+                <p style={{ color: '#bbb', fontSize: '12px', marginTop: '12px', textAlign: 'center' }}>
                   Point camera at guest QR code
                 </p>
               </div>
@@ -211,7 +211,7 @@ export default function CheckIn() {
               RECENT CHECK-INS
             </h2>
             {recentCheckIns.length === 0 ? (
-              <p style={{ color: '#444', fontSize: '0.8rem' }}>No check-ins yet this session.</p>
+              <p style={{ color: '#999', fontSize: '0.8rem' }}>No check-ins yet this session.</p>
             ) : (
               <ol style={{ listStyle: 'none' }} aria-label="Recent check-ins list">
                 {recentCheckIns.map((entry, i) => (
@@ -220,7 +220,7 @@ export default function CheckIn() {
                       <p style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{entry.name}</p>
                       <p style={{ color: '#888', fontSize: '0.75rem' }}>{entry.event}</p>
                     </div>
-                    <span style={{ color: '#555', fontSize: '11px', whiteSpace: 'nowrap' }}>{entry.time}</span>
+                    <span style={{ color: '#aaa', fontSize: '11px', whiteSpace: 'nowrap' }}>{entry.time}</span>
                   </li>
                 ))}
               </ol>

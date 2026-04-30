@@ -238,14 +238,14 @@ export default function MyTickets() {
         </h1>
 
         {loading ? (
-          <p role="status" aria-live="polite" style={{ color: '#666' }}>Loading your tickets...</p>
+          <p role="status" aria-live="polite" style={{ color: '#bbb' }}>Loading your tickets...</p>
         ) : tickets.length === 0 ? (
-          <div style={{ color: '#666', textAlign: 'center', padding: '80px 0' }}>
+          <div style={{ color: '#bbb', textAlign: 'center', padding: '80px 0' }}>
             <p style={{ fontSize: '3rem', marginBottom: '16px' }}>🎫</p>
             <p style={{ fontSize: '1.1rem', marginBottom: '8px', color: '#fff' }}>
               {isLoggedIn ? "No tickets yet." : 'Sign in to see your tickets.'}
             </p>
-            <p style={{ fontSize: '0.85rem', marginBottom: '24px', color: '#555' }}>
+            <p style={{ fontSize: '0.85rem', marginBottom: '24px', color: '#aaa' }}>
               {isLoggedIn ? 'Click "GET TICKET" on any event on the homepage.' : 'Create an account or log in to book events.'}
             </p>
             <button style={{ ...navBtn, background: '#4361ee', color: '#fff', border: 'none' }}

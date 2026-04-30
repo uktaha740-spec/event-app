@@ -220,18 +220,18 @@ function EventCard({ event, onAction, onRSVP, rsvpState }) {
 
       {/* ── Card body ── */}
       <div style={{ padding: '18px' }}>
-        <h3 style={{ fontSize: '0.92rem', fontWeight: 'bold', marginBottom: '8px', lineHeight: 1.35, letterSpacing: '0.02em' }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '8px', lineHeight: 1.35, letterSpacing: '0.02em', color: '#fff' }}>
           {event.title}
         </h3>
 
         {event.description && (
-          <p style={{ color: '#444', fontSize: '0.73rem', marginBottom: '12px', lineHeight: 1.6, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+          <p style={{ color: '#bbb', fontSize: '0.8rem', marginBottom: '12px', lineHeight: 1.65, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
             {event.description}
           </p>
         )}
 
-        <p style={{ color: '#777', fontSize: '0.78rem', marginBottom: '3px' }}>📅 {event.date}, {event.time}</p>
-        <p style={{ color: '#777', fontSize: '0.78rem', marginBottom: '14px' }}>📍 {event.venue}</p>
+        <p style={{ color: '#aaa', fontSize: '0.82rem', marginBottom: '3px' }}>📅 {event.date || (event.event_date ? new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'TBD')}{event.time ? `, ${event.time}` : ''}</p>
+        <p style={{ color: '#aaa', fontSize: '0.82rem', marginBottom: '14px' }}>📍 {event.venue || 'London'}</p>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 'bold', fontSize: '0.95rem', color: isPaid ? '#fff' : '#00cc66' }}>
@@ -270,7 +270,7 @@ function JourneyColumn({ role, headline, tagline, steps, accent, ctaLabel, ctaAc
       <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', letterSpacing: '0.08em', marginBottom: '8px' }}>
         {headline.toUpperCase()}
       </h3>
-      <p style={{ color: '#555', fontSize: '0.78rem', marginBottom: '32px', lineHeight: 1.65 }}>{tagline}</p>
+      <p style={{ color: '#aaa', fontSize: '0.78rem', marginBottom: '32px', lineHeight: 1.65 }}>{tagline}</p>
 
       {/* Step timeline */}
       <ol style={{ listStyle: 'none', position: 'relative' }}>
@@ -291,7 +291,7 @@ function JourneyColumn({ role, headline, tagline, steps, accent, ctaLabel, ctaAc
               <p style={{ fontSize: '0.82rem', fontWeight: 'bold', color: '#ccc', marginBottom: '3px', letterSpacing: '0.02em' }}>
                 {step.title}
               </p>
-              <p style={{ fontSize: '0.72rem', color: '#555', lineHeight: 1.55 }}>{step.desc}</p>
+              <p style={{ fontSize: '0.72rem', color: '#aaa', lineHeight: 1.55 }}>{step.desc}</p>
             </div>
           </li>
         ))}
@@ -312,6 +312,24 @@ function JourneyColumn({ role, headline, tagline, steps, accent, ctaLabel, ctaAc
       </p>
     </div>
   )
+}
+
+// ── DB ROW NORMALISER ────────────────────────────────────────────────────────
+function normalizeDbEvent(e, countMap) {
+  const readableDate = e.event_date
+    ? new Date(e.event_date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+    : (e.date || 'TBD')
+  return {
+    ...e,
+    date:         readableDate,
+    tickets_sold: countMap[e.id] ?? (e.tickets_sold ?? 0),
+    capacity:     parseInt(e.max_capacity) || e.capacity || 0,
+    price:        e.price ?? 0,
+    venue:        e.venue || '',
+    time:         e.time  || '',
+    category:     e.category || 'Other',
+    image_url:    e.image_url || null,
+  }
 }
 
 // ── MAIN COMPONENT ───────────────────────────────────────────────────────────
@@ -350,16 +368,12 @@ export default function Homepage() {
           if (rsvpRows) {
             const countMap = {}
             rsvpRows.forEach(r => { countMap[r.event_id] = (countMap[r.event_id] || 0) + 1 })
-            setEvents(data.map(e => ({
-              ...e,
-              tickets_sold: countMap[e.id] ?? (e.tickets_sold ?? 0),
-              capacity: parseInt(e.max_capacity) || e.capacity || 0,
-            })))
+            setEvents(data.map(e => normalizeDbEvent(e, countMap)))
           } else {
-            setEvents(data)
+            setEvents(data.map(e => normalizeDbEvent(e, {})))
           }
         } catch {
-          setEvents(data)
+          setEvents(data.map(e => normalizeDbEvent(e, {})))
         }
       } else {
         setEvents(MOCK_EVENTS)
@@ -496,7 +510,7 @@ export default function Homepage() {
               IN LONDON
             </h1>
 
-            <p style={{ color: '#666', fontSize: '0.95rem', lineHeight: 1.75, marginBottom: '36px', maxWidth: '460px' }}>
+            <p style={{ color: '#bbb', fontSize: '0.95rem', lineHeight: 1.75, marginBottom: '36px', maxWidth: '460px' }}>
               Thousands of music, business, food and arts events — all in one place. Get your tickets in seconds.
             </p>
 
@@ -518,9 +532,9 @@ export default function Homepage() {
             </div>
 
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-              <span style={{ color: '#444', fontSize: '10px', letterSpacing: '0.12em' }}>POPULAR:</span>
+              <span style={{ color: '#999', fontSize: '10px', letterSpacing: '0.12em' }}>POPULAR:</span>
               {POPULAR_SEARCHES.map(tag => (
-                <button key={tag} onClick={() => { setSearch(tag.split(' ')[0]); scrollToEvents() }} style={{ background: 'none', border: '1px solid #252525', color: '#666', padding: '4px 12px', fontSize: '11px', letterSpacing: '0.05em' }}>
+                <button key={tag} onClick={() => { setSearch(tag.split(' ')[0]); scrollToEvents() }} style={{ background: 'none', border: '1px solid #252525', color: '#bbb', padding: '4px 12px', fontSize: '11px', letterSpacing: '0.05em' }}>
                   {tag}
                 </button>
               ))}
@@ -534,7 +548,7 @@ export default function Homepage() {
             {STATS.map((s, i) => (
               <div key={s.label} style={{ padding: '26px 20px', textAlign: 'center', borderRight: i < STATS.length - 1 ? '1px solid #111' : 'none' }}>
                 <p style={{ fontSize: '1.9rem', fontWeight: 'bold', color: '#fff', marginBottom: '4px', letterSpacing: '0.04em' }}>{s.value}</p>
-                <p style={{ fontSize: '10px', letterSpacing: '0.14em', color: '#444' }}>{s.label.toUpperCase()}</p>
+                <p style={{ fontSize: '10px', letterSpacing: '0.14em', color: '#999' }}>{s.label.toUpperCase()}</p>
               </div>
             ))}
           </div>
@@ -547,7 +561,7 @@ export default function Homepage() {
             <h2 id="access-heading" style={{ fontSize: 'clamp(1.3rem, 2.5vw, 1.7rem)', fontWeight: 'bold', letterSpacing: '0.06em', marginBottom: '8px' }}>
               HOW TO ACCESS YOUR EXPERIENCE
             </h2>
-            <p style={{ color: '#444', fontSize: '0.8rem', lineHeight: 1.7, maxWidth: '560px' }}>
+            <p style={{ color: '#999', fontSize: '0.8rem', lineHeight: 1.7, maxWidth: '560px' }}>
               Create a free account to unlock your full experience. Without an account you can browse, but cannot purchase tickets or manage events — your data stays private and secure behind your login.
             </p>
           </div>
@@ -668,7 +682,7 @@ export default function Homepage() {
                     <div style={{ width: '140px', height: '3px', background: '#222', borderRadius: '2px', overflow: 'hidden' }} aria-hidden="true">
                       <div style={{ height: '100%', width: `${Math.min(100, (featured.tickets_sold / featured.capacity) * 100)}%`, background: '#4361ee' }} />
                     </div>
-                    <span style={{ color: '#555', fontSize: '11px' }}>{featured.tickets_sold}/{featured.capacity} sold</span>
+                    <span style={{ color: '#aaa', fontSize: '11px' }}>{featured.tickets_sold}/{featured.capacity} sold</span>
                   </div>
                 </div>
               </div>
@@ -689,7 +703,7 @@ export default function Homepage() {
               </h2>
             </div>
             {search && (
-              <button onClick={() => setSearch('')} style={{ background: 'none', border: '1px solid #222', color: '#666', padding: '8px 16px', fontSize: '11px', letterSpacing: '0.08em' }} aria-label="Clear search">
+              <button onClick={() => setSearch('')} style={{ background: 'none', border: '1px solid #222', color: '#bbb', padding: '8px 16px', fontSize: '11px', letterSpacing: '0.08em' }} aria-label="Clear search">
                 CLEAR ✕
               </button>
             )}
@@ -697,7 +711,7 @@ export default function Homepage() {
 
           {/* Sign-in callout for non-logged-in users */}
           {!isLoggedIn && (
-            <div role="note" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#060610', border: '1px solid #1e1e3a', padding: '12px 18px', marginBottom: '24px', fontSize: '12px', color: '#666', flexWrap: 'wrap' }}>
+            <div role="note" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#060610', border: '1px solid #1e1e3a', padding: '12px 18px', marginBottom: '24px', fontSize: '12px', color: '#bbb', flexWrap: 'wrap' }}>
               <span style={{ color: '#4361ee', fontSize: '14px' }}>🔒</span>
               <span>
                 Browsing is free —{' '}
@@ -748,7 +762,7 @@ export default function Homepage() {
                   <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#4361ee', letterSpacing: '0.05em' }}>{item.step}</span>
                 </div>
                 <h3 style={{ fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '0.12em', marginBottom: '10px' }}>{item.title.toUpperCase()}</h3>
-                <p style={{ color: '#444', fontSize: '0.78rem', lineHeight: 1.75 }}>{item.desc}</p>
+                <p style={{ color: '#999', fontSize: '0.78rem', lineHeight: 1.75 }}>{item.desc}</p>
               </div>
             ))}
           </div>
@@ -768,7 +782,7 @@ export default function Homepage() {
               READY TO HOST<br />YOUR OWN EVENT?
             </h2>
 
-            <p style={{ color: '#555', fontSize: '0.88rem', lineHeight: 1.8, marginBottom: '32px', maxWidth: '420px' }}>
+            <p style={{ color: '#aaa', fontSize: '0.88rem', lineHeight: 1.8, marginBottom: '32px', maxWidth: '420px' }}>
               Create your event in minutes. Manage RSVPs, track ticket sales, check in guests with QR codes, and monitor revenue — all from one dashboard. You must have a Host account to access event data.
             </p>
 
@@ -776,14 +790,14 @@ export default function Homepage() {
               <button onClick={handleHostAction} style={{ background: '#7209b7', color: '#fff', border: 'none', padding: '14px 34px', fontWeight: 'bold', fontSize: '12px', letterSpacing: '0.12em', fontFamily: 'inherit' }}>
                 {isLoggedIn ? 'OPEN DASHBOARD →' : 'SIGN UP AS HOST →'}
               </button>
-              <button onClick={() => navigate('/login')} style={{ background: 'transparent', color: '#666', border: '1px solid #222', padding: '14px 28px', fontSize: '12px', letterSpacing: '0.08em', fontFamily: 'inherit' }}>
+              <button onClick={() => navigate('/login')} style={{ background: 'transparent', color: '#bbb', border: '1px solid #222', padding: '14px 28px', fontSize: '12px', letterSpacing: '0.08em', fontFamily: 'inherit' }}>
                 LOG IN
               </button>
             </div>
 
             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
               {['Free to create', 'QR check-in', 'Live analytics', 'Email confirmations'].map(f => (
-                <span key={f} style={{ color: '#444', fontSize: '11px', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span key={f} style={{ color: '#999', fontSize: '11px', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ color: '#00cc66' }}>✓</span> {f.toUpperCase()}
                 </span>
               ))}
