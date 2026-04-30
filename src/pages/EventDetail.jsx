@@ -103,36 +103,20 @@ export default function EventDetail() {
       localStorage.setItem(key, JSON.stringify([newTicket, ...existing]))
       setRsvpState('done')
 
-      // Send confirmation email with QR code
+      // Send via serverless function (server-side, no CORS)
       try {
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketCode}`
-        await fetch('https://api.resend.com/emails', {
+        await fetch('/api/send-email', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer re_L3vMjxGs_H4gjsDgxFSDL71Ttk8v5vzT7',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            from: 'onboarding@resend.dev',
-            to: 'uktaha740@gmail.com',
-            subject: `Ticket for ${event.title} — booked by ${user.email}`,
-            html: `
-              <div style="background:#000;color:#fff;font-family:'Courier New',monospace;padding:40px;max-width:600px;margin:0 auto;">
-                <h1 style="color:#4361ee;letter-spacing:0.1em;font-size:1.2rem;margin-bottom:4px;">EVENT●HUB</h1>
-                <p style="color:#555;font-size:0.8rem;margin-bottom:32px;">Your ticket confirmation</p>
-                <h2 style="font-size:1.4rem;font-weight:bold;margin-bottom:8px;">${event.title}</h2>
-                <p style="color:#aaa;font-size:0.9rem;margin-bottom:4px;">📅 ${event.date}${event.time ? ' at ' + event.time : ''}</p>
-                <p style="color:#aaa;font-size:0.9rem;margin-bottom:24px;">📍 ${event.venue || 'London'}</p>
-                <div style="background:#111;border:1px solid #222;padding:20px;margin-bottom:24px;text-align:center;">
-                  <p style="color:#555;font-size:0.75rem;letter-spacing:0.1em;margin-bottom:12px;">YOUR QR CODE</p>
-                  <img src="${qrUrl}" alt="QR Code" width="200" height="200" style="display:block;margin:0 auto 16px;" />
-                  <p style="color:#4361ee;font-size:1rem;font-weight:bold;letter-spacing:0.12em;">${ticketCode}</p>
-                  <p style="color:#555;font-size:0.75rem;margin-top:8px;">Show this QR code at the door</p>
-                </div>
-                <p style="color:#333;font-size:0.75rem;text-align:center;">
-                  View anytime at <a href="/tickets" style="color:#4361ee;">EventHub My Tickets</a>
-                </p>
-              </div>`,
+            guestEmail: user.email,
+            eventTitle: event.title,
+            eventDate: event.date,
+            eventTime: event.time || '',
+            eventVenue: event.venue || 'London',
+            ticketCode,
+            qrUrl,
           }),
         })
       } catch { /* non-fatal — ticket is already saved */ }
