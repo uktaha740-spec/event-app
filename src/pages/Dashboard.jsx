@@ -50,7 +50,7 @@ function normalizeEvent(e) {
 }
 
 const EMPTY_FORM = {
-  title: '', date: '', time: '', venue: '', category: 'Music', price: '', capacity: '', description: '',
+  title: '', date: '', time: '', venue: '', category: 'Music', price: '', capacity: '', description: '', image_url: '',
 }
 
 export default function Dashboard() {
@@ -147,9 +147,10 @@ export default function Dashboard() {
         ...corePayload,
         ...(form.time        && { time: form.time }),
         ...(form.venue       && { venue: form.venue }),
-        ...(form.price       && { price: Number(form.price) }),
+        price: form.price !== '' ? Number(form.price) : 0,
         ...(form.category    && { category: form.category }),
         ...(form.description && { description: form.description }),
+        ...(form.image_url   && { image_url: form.image_url }),
         status: 'upcoming',
       }
 
@@ -343,6 +344,10 @@ export default function Dashboard() {
                 <label style={labelStyle}>
                   Capacity *
                   <input required type="number" min="1" style={inputStyle} value={form.capacity} onChange={e => setForm(p => ({ ...p, capacity: e.target.value }))} placeholder="e.g. 100" />
+                </label>
+                <label style={{ ...labelStyle, gridColumn: 'span 2' }}>
+                  Event Photo URL — optional (paste an image link)
+                  <input style={inputStyle} value={form.image_url} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} placeholder="https://images.unsplash.com/..." />
                 </label>
                 <label style={{ ...labelStyle, gridColumn: 'span 2' }}>
                   Description
