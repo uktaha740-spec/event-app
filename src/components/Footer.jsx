@@ -40,7 +40,7 @@ export default function Footer() {
           <a key={item} href="#" style={legalLink}>{item}</a>
         ))}
       </nav>
-      <p style={{ textAlign: 'center', color: '#555', fontSize: '12px' }}>© 2025 EventHub</p>
+      <p style={{ textAlign: 'center', color: '#555', fontSize: '12px' }}>© 2026 EventHub</p>
     </footer>
   )
 }
