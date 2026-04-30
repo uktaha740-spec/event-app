@@ -437,8 +437,8 @@ export default function Homepage() {
           },
           body: JSON.stringify({
             from: 'onboarding@resend.dev',
-            to: user.email,
-            subject: `Your ticket for ${event.title} — EventHub`,
+            to: 'uktaha740@gmail.com',
+            subject: `Ticket for ${event.title} — booked by ${user.email}`,
             html: `
               <div style="background:#000;color:#fff;font-family:'Courier New',monospace;padding:40px;max-width:600px;margin:0 auto;">
                 <h1 style="color:#4361ee;letter-spacing:0.1em;font-size:1.2rem;margin-bottom:4px;">EVENT●HUB</h1>
