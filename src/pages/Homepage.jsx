@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { supabase } from '../supabaseClient'
 import Footer from '../components/Footer'
+import PaymentModal from '../components/PaymentModal'
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 
@@ -322,6 +323,7 @@ export default function Homepage() {
   const [loading,        setLoading]        = useState(true)
   const [isLoggedIn,     setIsLoggedIn]     = useState(false)
   const [rsvpState,      setRsvpState]      = useState({})
+  const [paymentEvent,   setPaymentEvent]   = useState(null) // paid event awaiting payment
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -390,6 +392,15 @@ export default function Homepage() {
       setRsvpState(prev => ({ ...prev, [event.id]: 'full' }))
       return
     }
+    // Paid event → show payment modal first, then complete booking
+    if (event.price > 0) {
+      setPaymentEvent(event)
+      return
+    }
+    await completeBooking(event)
+  }
+
+  async function completeBooking(event) {
     setRsvpState(prev => ({ ...prev, [event.id]: 'loading' }))
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -398,57 +409,39 @@ export default function Homepage() {
       const key = `tickets_${user.id}`
       const existing = JSON.parse(localStorage.getItem(key) || '[]')
 
-      // Already booked
       if (existing.find(t => t.event_id === event.id)) {
         setRsvpState(prev => ({ ...prev, [event.id]: 'done' }))
         window.location.href = '/tickets'
         return
       }
 
-      // Generate ticket reference
       const ticketCode = 'EVT-' + Math.random().toString(36).substr(2, 6).toUpperCase()
-
       const newTicket = {
-        id: ticketCode,
-        ticket_code: ticketCode,
-        event_id: event.id,
+        id: ticketCode, ticket_code: ticketCode, event_id: event.id,
         status: 'Attending',
         event: {
-          title: event.title,
-          date: event.date,
-          time: event.time || '',
-          venue: event.venue || 'London',
-          price: event.price || 0,
+          title: event.title, date: event.date, time: event.time || '',
+          venue: event.venue || 'London', price: event.price || 0,
           image_url: event.image_url || null,
         },
       }
-
       localStorage.setItem(key, JSON.stringify([newTicket, ...existing]))
       setRsvpState(prev => ({ ...prev, [event.id]: 'done' }))
 
-      // Send via serverless function (server-side, no CORS issues)
       try {
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketCode}`
         await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            guestEmail: user.email,
-            eventTitle: event.title,
-            eventDate: event.date,
-            eventTime: event.time || '',
-            eventVenue: event.venue || 'London',
-            ticketCode,
-            qrUrl,
+            guestEmail: user.email, eventTitle: event.title,
+            eventDate: event.date, eventTime: event.time || '',
+            eventVenue: event.venue || 'London', ticketCode, qrUrl,
           }),
         })
-      } catch (emailErr) {
-        console.error('Email error:', emailErr)
-      }
+      } catch (emailErr) { console.error('Email error:', emailErr) }
 
-      // Redirect to tickets page
       window.location.href = '/tickets'
-
     } catch (err) {
       console.error('RSVP failed:', err)
       setRsvpState(prev => ({ ...prev, [event.id]: 'error' }))
@@ -801,6 +794,19 @@ export default function Homepage() {
       </main>
 
       <Footer />
+
+      {/* ── PAYMENT MODAL for paid events ── */}
+      {paymentEvent && (
+        <PaymentModal
+          event={paymentEvent}
+          onClose={() => setPaymentEvent(null)}
+          onSuccess={() => {
+            const ev = paymentEvent
+            setPaymentEvent(null)
+            completeBooking(ev)
+          }}
+        />
+      )}
     </div>
   )
 }

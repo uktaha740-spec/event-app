@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import Footer from '../components/Footer'
+import PaymentModal from '../components/PaymentModal'
 
 const DEFAULT_IMAGES = {
   Music:                      'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=1200&q=80',
@@ -26,8 +27,9 @@ export default function EventDetail() {
   const [event,     setEvent]     = useState(null)
   const [loading,   setLoading]   = useState(true)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [rsvpState, setRsvpState] = useState('idle') // idle | loading | done | full | error
-  const [imgFailed, setImgFailed] = useState(false)
+  const [rsvpState,    setRsvpState]    = useState('idle') // idle | loading | done | full | error
+  const [showPayment,  setShowPayment]  = useState(false)
+  const [imgFailed,    setImgFailed]    = useState(false)
 
   useEffect(() => {
     fetchEvent()
@@ -76,6 +78,13 @@ export default function EventDetail() {
     const isFull = event.capacity > 0 && (event.tickets_sold ?? 0) >= event.capacity
     if (isFull) { setRsvpState('full'); return }
 
+    // Paid event → show payment modal first
+    if (event.price > 0) { setShowPayment(true); return }
+
+    await completeBooking()
+  }
+
+  async function completeBooking() {
     setRsvpState('loading')
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -309,6 +318,14 @@ export default function EventDetail() {
       </main>
 
       <Footer />
+
+      {showPayment && (
+        <PaymentModal
+          event={event}
+          onClose={() => setShowPayment(false)}
+          onSuccess={() => { setShowPayment(false); completeBooking() }}
+        />
+      )}
     </div>
   )
 }
