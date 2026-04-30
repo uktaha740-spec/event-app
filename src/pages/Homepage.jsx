@@ -433,7 +433,7 @@ export default function Homepage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer re_YDWbv2az_HSqKMFyHygrMocxhZ1R3h7Ec',
+            'Authorization': 'Bearer re_EdPyPe7B_9jFtdpLGaApxTFMddLdQr1VP',
           },
           body: JSON.stringify({
             from: 'onboarding@resend.dev',
