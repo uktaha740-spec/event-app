@@ -33,9 +33,10 @@ const MOCK_TICKETS = [
   },
 ]
 
-function TicketCard({ ticket }) {
+function TicketCard({ ticket, onCancel }) {
+  const navigate = useNavigate()
   const { event, ticket_code, status } = ticket
-  const isPaid = event.price > 0
+  const isPaid    = event.price > 0
   const isAttended = status === 'Attended'
 
   return (
@@ -96,26 +97,37 @@ function TicketCard({ ticket }) {
             />
           </div>
 
-          {/* Apple Wallet button (cosmetic) */}
-          <button style={walletBtn} aria-label="Add ticket to Apple Wallet">
-            <span aria-hidden="true" style={{ fontSize: '20px' }}>⬛</span>
-            <span style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', lineHeight: 1.2 }}>
-              <small style={{ fontSize: '10px', opacity: 0.8 }}>Add to</small>
-              <strong style={{ fontSize: '15px' }}>Apple Wallet</strong>
-            </span>
-          </button>
+          {/* Actions */}
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* View Event */}
+            <button
+              onClick={() => navigate(`/events/${ticket.event_id}`)}
+              style={{ width: '100%', background: 'transparent', border: '1px solid #4361ee', color: '#7ca4ff', padding: '11px', fontFamily: 'inherit', fontWeight: 'bold', fontSize: '12px', letterSpacing: '0.08em', cursor: 'pointer' }}
+              aria-label={`View details for ${event.title}`}
+            >
+              VIEW EVENT DETAILS →
+            </button>
 
-          {/* Download */}
-          <p style={{ fontSize: '0.85rem', letterSpacing: '0.08em' }}>
-            DOWNLOAD TICKET{' '}
+            {/* Download / Print */}
             <button
               onClick={() => window.print()}
-              style={{ background: 'none', border: 'none', color: '#00cc66', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '0.08em' }}
-              aria-label={`Download ticket ${ticket_code}`}
+              style={{ width: '100%', background: 'transparent', border: '1px solid #333', color: '#aaa', padding: '11px', fontFamily: 'inherit', fontWeight: 'bold', fontSize: '12px', letterSpacing: '0.08em', cursor: 'pointer' }}
+              aria-label={`Print ticket ${ticket_code}`}
             >
-              HERE
+              🖨 PRINT / SAVE TICKET
             </button>
-          </p>
+
+            {/* Cancel ticket */}
+            {!isAttended && (
+              <button
+                onClick={() => onCancel(ticket)}
+                style={{ width: '100%', background: 'transparent', border: '1px solid #2a0000', color: '#ff4444', padding: '11px', fontFamily: 'inherit', fontWeight: 'bold', fontSize: '12px', letterSpacing: '0.08em', cursor: 'pointer' }}
+                aria-label={`Cancel ticket for ${event.title}`}
+              >
+                CANCEL TICKET ✕
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </article>
@@ -190,6 +202,22 @@ export default function MyTickets() {
     setLoading(false)
   }
 
+  async function handleCancel(ticket) {
+    if (!window.confirm(`Cancel your ticket for "${ticket.event?.title}"? This cannot be undone.`)) return
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        // Remove from localStorage
+        const key = `tickets_${user.id}`
+        const stored = JSON.parse(localStorage.getItem(key) || '[]')
+        localStorage.setItem(key, JSON.stringify(stored.filter(t => t.id !== ticket.id)))
+        // Also remove from Supabase rsvps if it exists there
+        await supabase.from('rsvps').delete().eq('id', ticket.id)
+      }
+    } catch { /* best effort */ }
+    setTickets(prev => prev.filter(t => t.id !== ticket.id))
+  }
+
   return (
     <div style={{ background: '#000', minHeight: '100vh', color: '#fff', fontFamily: "'Courier New', monospace" }}>
       <a href="#main-content" className="skip-link">Skip to main content</a>
@@ -229,7 +257,7 @@ export default function MyTickets() {
           <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }} role="list">
             {tickets.map(ticket => (
               <div key={ticket.id} role="listitem">
-                <TicketCard ticket={ticket} />
+                <TicketCard ticket={ticket} onCancel={handleCancel} />
               </div>
             ))}
           </div>
@@ -266,17 +294,3 @@ const cardStyle = {
   width: '340px',
 }
 
-const walletBtn = {
-  background: '#000',
-  color: '#fff',
-  border: '1px solid #555',
-  padding: '10px 20px',
-  borderRadius: '8px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-  cursor: 'pointer',
-  fontFamily: 'inherit',
-  width: '100%',
-  justifyContent: 'center',
-}
