@@ -379,9 +379,9 @@ export default function Homepage() {
     document.getElementById('events-section')?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Redirect guests to login if not authenticated; hosts go to dashboard
-  function handleTicketAction() {
-    navigate(isLoggedIn ? '/tickets' : '/login')
+  // Navigate to the event detail page
+  function handleEventClick(event) {
+    navigate(`/events/${event.id}`)
   }
 
   async function handleRSVP(event) {
@@ -437,8 +437,8 @@ export default function Homepage() {
           },
           body: JSON.stringify({
             from: 'onboarding@resend.dev',
-            to: '16jamesm@gmail.com',
-            subject: `Ticket for ${event.title} — Booked by ${user.email}`,
+            to: user.email,
+            subject: `Your ticket for ${event.title} — EventHub`,
             html: `
               <div style="background:#000;color:#fff;font-family:'Courier New',monospace;padding:40px;max-width:600px;margin:0 auto;">
                 <h1 style="color:#4361ee;letter-spacing:0.1em;font-size:1.2rem;margin-bottom:4px;">EVENT●HUB</h1>
@@ -633,7 +633,7 @@ export default function Homepage() {
             <p style={{ fontSize: '10px', letterSpacing: '0.22em', color: '#333', marginBottom: '16px' }}>FEATURED EVENT</p>
 
             <div
-              onClick={handleTicketAction}
+              onClick={() => handleEventClick(featured)}
               role="button"
               tabIndex={0}
               aria-label={`Featured event: ${featured.title}. Click to get tickets.`}
@@ -753,7 +753,7 @@ export default function Homepage() {
             <div className="events-grid" role="list">
               {filtered.map(event => (
                 <div key={event.id} role="listitem">
-                  <EventCard event={event} onAction={handleTicketAction} onRSVP={handleRSVP} rsvpState={rsvpState} />
+                  <EventCard event={event} onAction={() => handleEventClick(event)} onRSVP={handleRSVP} rsvpState={rsvpState} />
                 </div>
               ))}
             </div>

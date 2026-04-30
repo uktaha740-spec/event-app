@@ -103,6 +103,17 @@ button {
   .how-grid { grid-template-columns: 1fr; }
 }
 
+/* Event detail two-column layout */
+.event-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 64px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .event-detail-grid { grid-template-columns: 1fr; }
+}
+
 /* ── ACCESSIBILITY ───────────────────────────────────────────────────────── */
 
 /* Screen-reader-only helper — used in CheckIn and Dashboard */

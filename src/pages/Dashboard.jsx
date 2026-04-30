@@ -64,6 +64,8 @@ export default function Dashboard() {
   const [saveMsg, setSaveMsg] = useState('')
   const [isHost, setIsHost] = useState(false)
   const [notification, setNotification] = useState(null)
+  const [editingId, setEditingId] = useState(null)
+  const [editForm, setEditForm] = useState(EMPTY_FORM)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -183,6 +185,61 @@ export default function Dashboard() {
 
   function toggleExpand(id) {
     setExpandedId(prev => (prev === id ? null : id))
+  }
+
+  function startEdit(event) {
+    setEditingId(event.id)
+    setEditForm({
+      title:       event.title       || '',
+      date:        event.event_date  || event.date || '',
+      time:        event.time        || '',
+      venue:       event.venue       || '',
+      category:    event.category    || 'Music',
+      price:       event.price != null ? String(event.price) : '',
+      capacity:    event.capacity    ? String(event.capacity) : '',
+      description: event.description || '',
+      image_url:   event.image_url   || '',
+    })
+  }
+
+  async function handleEditSave(eventId) {
+    setSaving(true)
+    try {
+      const payload = {
+        title:        editForm.title,
+        event_date:   editForm.date,
+        max_capacity: String(editForm.capacity),
+        time:         editForm.time        || null,
+        venue:        editForm.venue       || null,
+        price:        editForm.price !== '' ? Number(editForm.price) : 0,
+        category:     editForm.category    || null,
+        description:  editForm.description || null,
+        image_url:    editForm.image_url   || null,
+      }
+      const { error } = await supabase.from('events').update(payload).eq('id', eventId)
+      if (!error) {
+        setEvents(prev => prev.map(e => e.id === eventId ? { ...e, ...payload, capacity: parseInt(payload.max_capacity) || 0 } : e))
+        setSaveMsg('Event updated!')
+      } else {
+        setSaveMsg('Update failed — try again.')
+      }
+    } catch {
+      setSaveMsg('Update failed — try again.')
+    }
+    setEditingId(null)
+    setSaving(false)
+    setTimeout(() => setSaveMsg(''), 3000)
+  }
+
+  async function handleDelete(eventId) {
+    if (!window.confirm('Delete this event permanently? This cannot be undone.')) return
+    try {
+      await supabase.from('events').delete().eq('id', eventId)
+    } catch { /* optimistic — remove from UI regardless */ }
+    setEvents(prev => prev.filter(e => e.id !== eventId))
+    if (expandedId === eventId) setExpandedId(null)
+    setSaveMsg('Event deleted.')
+    setTimeout(() => setSaveMsg(''), 3000)
   }
 
   return (
@@ -395,9 +452,44 @@ export default function Dashboard() {
                     </span>
                   </button>
 
-                  {expandedId === event.id && (
-                    <EventStats event={event} onCheckinNav={() => navigate('/checkin')} />
-                  )}
+                  {expandedId === event.id && editingId === event.id ? (
+                    <div style={{ ...statsCard, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <p style={{ fontSize: '12px', color: '#aaa', letterSpacing: '0.08em', marginBottom: '4px' }}>EDIT EVENT</p>
+                      {[
+                        { label: 'Title',       key: 'title',       type: 'text'   },
+                        { label: 'Date',        key: 'date',        type: 'date'   },
+                        { label: 'Time',        key: 'time',        type: 'time'   },
+                        { label: 'Venue',       key: 'venue',       type: 'text'   },
+                        { label: 'Price (£)',   key: 'price',       type: 'number' },
+                        { label: 'Capacity',    key: 'capacity',    type: 'number' },
+                        { label: 'Image URL',   key: 'image_url',   type: 'text'   },
+                      ].map(({ label, key, type }) => (
+                        <label key={key} style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: '#888', letterSpacing: '0.06em' }}>
+                          {label}
+                          <input
+                            type={type} value={editForm[key]}
+                            onChange={e => setEditForm(p => ({ ...p, [key]: e.target.value }))}
+                            style={inputStyle}
+                          />
+                        </label>
+                      ))}
+                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: '#888', letterSpacing: '0.06em' }}>
+                        Description
+                        <textarea value={editForm.description} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} style={{ ...inputStyle, height: '72px', resize: 'vertical' }} />
+                      </label>
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                        <button onClick={() => handleEditSave(event.id)} disabled={saving} style={submitBtn}>{saving ? 'SAVING...' : 'SAVE CHANGES'}</button>
+                        <button onClick={() => setEditingId(null)} style={cancelBtn}>CANCEL</button>
+                      </div>
+                    </div>
+                  ) : expandedId === event.id ? (
+                    <EventStats
+                      event={event}
+                      onCheckinNav={() => navigate('/checkin')}
+                      onEdit={() => startEdit(event)}
+                      onDelete={() => handleDelete(event.id)}
+                    />
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -410,7 +502,7 @@ export default function Dashboard() {
   )
 }
 
-function EventStats({ event, onCheckinNav }) {
+function EventStats({ event, onCheckinNav, onEdit, onDelete }) {
   const revenue = (event.price || 0) * (event.tickets_sold || 0)
   const remaining = (event.capacity || 0) - (event.tickets_sold || 0)
 
@@ -456,9 +548,17 @@ function EventStats({ event, onCheckinNav }) {
         Checked-in Guests: {event.checked_in ?? 0}
       </p>
 
-      <button onClick={onCheckinNav} style={checkinBtn} aria-label={`Open check-in scanner for ${event.title}`}>
-        OPEN CHECK-IN SCANNER →
-      </button>
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <button onClick={onCheckinNav} style={checkinBtn} aria-label={`Open check-in scanner for ${event.title}`}>
+          OPEN CHECK-IN SCANNER →
+        </button>
+        <button onClick={onEdit} style={{ ...checkinBtn, background: '#1a1a4a', color: '#7ca4ff' }} aria-label={`Edit ${event.title}`}>
+          EDIT EVENT ✎
+        </button>
+        <button onClick={onDelete} style={{ ...checkinBtn, background: '#1a0000', color: '#ff4444' }} aria-label={`Delete ${event.title}`}>
+          DELETE ✕
+        </button>
+      </div>
     </div>
   )
 }

@@ -9,6 +9,7 @@ import MyTickets from './pages/Mytickets.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import CheckIn from './pages/CheckIn.jsx'
 import Contact from './pages/Contact.jsx'
+import EventDetail from './pages/EventDetail.jsx'
 
 // Register PWA service worker
 if ('serviceWorker' in navigator) {
@@ -28,6 +29,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/checkin" element={<CheckIn />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/events/:id" element={<EventDetail />} />
         </Routes>
       </BrowserRouter>
     </ErrorBoundary>
